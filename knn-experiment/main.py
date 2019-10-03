@@ -29,7 +29,7 @@ def show_img(img_arr, label_arr, meta, index, label_fn=default_label_fn):
     b = one_img[2048:]. reshape(32, 32)
     rgb = np.dstack([r, g, b])
     img = Image.fromarray(np.array(rgb), 'RGB')
-    display(img)
+    #img.show()
     print(label_fn(index, meta[label_arr[index][0]].decode('utf-8')))
 
 def main():
@@ -45,7 +45,20 @@ def main():
     
     batch = unpickle(basedir_data + 'meta')
     meta = batch[b'fine_label_names']
-    print(meta)
+
+    sample_img_data = img_data[0:100, :]
+    sample_test_data = test_data[0:100, :]
+
+    neighbors = KNeighborsClassifier(n_neighbors=3, algorithm='brute').fit(img_data, img_label_orig)
+    pred = neighbors.predict(sample_test_data)
+
+    def pred_label_fn(i, original):
+        return original + '::' + meta[pred[i]].decode('utf-8')
+
+    for i in range(0, len(pred)):
+        show_img(sample_test_data, test_label, meta, i, label_fn=pred_label_fn)
+
+    
 
 
 main()
