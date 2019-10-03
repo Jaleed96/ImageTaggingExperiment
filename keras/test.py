@@ -1,0 +1,92 @@
+# input_layer = layers.Input(name='input_layer', shape=(None, None, 3), dtype='float32')
+# conv1 = layers.Conv2D(32, (3, 3), border_mode='same', activation=tf.nn.relu)(input_layer)
+# maxp1 = layers.MaxPooling2D(pool_size=(2, 2))(conv1)
+# drop1 = layers.Dropout(0.25)(maxp1)
+# conv2 = layers.Conv2D(64, (3, 3), border_mode='same', activation=tf.nn.relu)(drop1)
+# maxp2 = layers.MaxPooling2D(pool_size=(2, 2))(conv2)
+# drop2 = layers.Dropout(0.25)(maxp2)
+# conv3 = layers.Conv2D(64, (3, 3), activation=tf.nn.relu)(drop2)
+# spp1 = SpatialPyramidPooling([1, 2, 4])(conv3)
+# dense1 = layers.Dense(512, activation=tf.nn.relu)(spp1)
+# drop3 = layers.Dropout(0.25)(dense1)
+# y_pred = layers.Dense(100, activation=tf.nn.softmax)(drop3)
+# Model(inputs=input_layer, outputs=y_pred).summary()
+
+# labels = Input(name='input_labels', shape=[1,], dtype='float32')
+
+import os
+import tensorflow as tf
+import keras
+import numpy as np
+from keras import layers
+from keras.models import Model
+from keras.models import Sequential
+from spp import SpatialPyramidPooling
+from keras.datasets import cifar100
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import cifar100label as cfl
+import img_processer as ip
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+ip.get_bunch_img(os.path.join(dir_path, 'images'))
+
+exit()
+(x_train, y_train), (x_test, y_test) = cifar100.load_data(label_mode='fine')
+
+# plt.imshow(x_train[0])
+# plt.title(coarse_label[y_train[0,0]])
+# plt.show()
+
+model_path = os.path.join(dir_path, 'spptest.h5')
+
+x_test = x_test.astype('float32')
+x_test /= 255
+
+tulippicpath = os.path.join(dir_path, 'tulip.jpg')
+tulippic = mpimg.imread(tulippicpath)
+
+plt.imshow(tulippic)
+tulippic = tulippic.astype('float32') / 255
+tulippic = np.expand_dims(tulippic, 0)
+
+model = Sequential()
+
+model.add(layers.Conv2D(32, (3, 3), border_mode='same', input_shape=(None, None, 3)))
+model.add(layers.Activation('relu'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Dropout(0.25))
+model.add(layers.Conv2D(64, (3, 3), border_mode='same'))
+model.add(layers.Activation('relu'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Dropout(0.25))
+model.add(layers.Conv2D(64, (3, 3)))
+model.add(layers.Activation('relu'))
+model.add(SpatialPyramidPooling([1, 2, 4]))
+model.add(layers.Dense(512))
+model.add(layers.Activation('relu'))
+model.add(layers.Dropout(0.25))
+model.add(layers.Dense(100))
+model.add(layers.Activation('softmax'))
+model.load_weights(model_path)
+
+model.summary()
+
+# varfrom = 10
+# varto = 19
+# y_preds = model.predict(x_test[10:19])
+# y_preds = np.argmax(y_preds, axis=-1)
+# fig, axes = plt.subplots(3, 3)
+# for i in range(9):
+#     row = (int)(i % 3)
+#     col = (int)(i / 3)
+#     sub = axes[row][col]
+#     sub.imshow(x_test[varfrom + i])
+#     reall = coarse_label[y_test[varfrom + i,0]]
+#     predl = coarse_label[y_preds[i]]
+#     sub.set_title('Real: ' + reall + ' : Pred: ' + predl)
+
+y_pred = model.predict(tulippic)
+plt.title(cfl.translate_label(y_pred))
+plt.show()
