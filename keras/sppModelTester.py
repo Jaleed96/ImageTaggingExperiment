@@ -27,12 +27,13 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import cifar100label as cfl
 import img_processer as ip
+import math
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-ip.get_bunch_img(os.path.join(dir_path, 'images'))
+z_test_paths = ip.get_bunch_img(os.path.join(dir_path, 'images'))
 
-exit()
+# exit()
 (x_train, y_train), (x_test, y_test) = cifar100.load_data(label_mode='fine')
 
 # plt.imshow(x_train[0])
@@ -44,12 +45,12 @@ model_path = os.path.join(dir_path, 'spptest.h5')
 x_test = x_test.astype('float32')
 x_test /= 255
 
-tulippicpath = os.path.join(dir_path, 'tulip.jpg')
-tulippic = mpimg.imread(tulippicpath)
+# tulippicpath = os.path.join(dir_path, 'tulip.jpg')
+# tulippic = mpimg.imread(tulippicpath)
 
-plt.imshow(tulippic)
-tulippic = tulippic.astype('float32') / 255
-tulippic = np.expand_dims(tulippic, 0)
+# plt.imshow(tulippic)
+# tulippic = tulippic.astype('float32') / 255
+# tulippic = np.expand_dims(tulippic, 0)
 
 model = Sequential()
 
@@ -87,6 +88,24 @@ model.summary()
 #     predl = coarse_label[y_preds[i]]
 #     sub.set_title('Real: ' + reall + ' : Pred: ' + predl)
 
-y_pred = model.predict(tulippic)
-plt.title(cfl.translate_label(y_pred))
-plt.show()
+def batch_predit(paths, model):
+    return np.array(list(map(lambda pic: model.predict(ip.get_image(pic)), paths))).reshape((-1,100))
+
+def batch_display_label(paths, model):
+    lent = len(paths)
+    lent = math.ceil(math.sqrt(lent))
+    fig, axes = plt.subplots(lent, lent)
+    for i in range(len(paths)):
+        img = mpimg.imread(paths[i])
+        pic = ip.get_image(paths[i])
+        row = (int)(i % lent)
+        col = (int)(i / lent)
+        sub = axes[row][col]
+        sub.imshow(img)
+        predl = cfl.translate_label(model.predict(pic))
+        sub.set_title('Predition: ' + predl)
+    plt.show()
+
+batch_display_label(z_test_paths, model)
+# plt.title(cfl.translate_labels(y_preds))
+# plt.show()
