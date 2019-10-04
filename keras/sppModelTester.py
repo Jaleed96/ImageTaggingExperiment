@@ -40,7 +40,7 @@ z_test_paths = ip.get_bunch_img(os.path.join(dir_path, 'images'))
 # plt.title(coarse_label[y_train[0,0]])
 # plt.show()
 
-model_path = os.path.join(dir_path, 'spptest.h5')
+model_path = os.path.join(dir_path, 'sppRMSprop.h5')
 
 x_test = x_test.astype('float32')
 x_test /= 255
@@ -74,19 +74,21 @@ model.load_weights(model_path)
 
 model.summary()
 
-# varfrom = 10
-# varto = 19
-# y_preds = model.predict(x_test[10:19])
-# y_preds = np.argmax(y_preds, axis=-1)
-# fig, axes = plt.subplots(3, 3)
-# for i in range(9):
-#     row = (int)(i % 3)
-#     col = (int)(i / 3)
+# varfrom = 20
+# varto = 29
+# y_preds = model.predict(x_test[varfrom:varto])
+# # y_preds = np.argmax(y_preds, axis=-1)
+# lent = math.ceil(math.sqrt(varto - varfrom))
+# fig, axes = plt.subplots(lent, lent)
+# for i in range(varto - varfrom):
+#     row = (int)(i % lent)
+#     col = (int)(i / lent)
 #     sub = axes[row][col]
 #     sub.imshow(x_test[varfrom + i])
-#     reall = coarse_label[y_test[varfrom + i,0]]
-#     predl = coarse_label[y_preds[i]]
+#     reall = cfl.coarse_label[y_test[varfrom + i,0]]
+#     predl = cfl.translate_label([y_preds[i]])
 #     sub.set_title('Real: ' + reall + ' : Pred: ' + predl)
+# plt.show()
 
 def batch_predit(paths, model):
     return np.array(list(map(lambda pic: model.predict(ip.get_image(pic)), paths))).reshape((-1,100))
@@ -108,4 +110,3 @@ def batch_display_label(paths, model):
 
 batch_display_label(z_test_paths, model)
 # plt.title(cfl.translate_labels(y_preds))
-# plt.show()

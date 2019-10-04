@@ -28,11 +28,11 @@ y_test = keras.utils.to_categorical(y_test, 100)
 
 model = Sequential()
 
-model.add(layers.Conv2D(32, (3, 3), border_mode='same', input_shape=(None, None, 3)))
+model.add(layers.Conv2D(32, (3, 3), padding='same', input_shape=(None, None, 3)))
 model.add(layers.Activation('relu'))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 model.add(layers.Dropout(0.25))
-model.add(layers.Conv2D(64, (3, 3), border_mode='same'))
+model.add(layers.Conv2D(64, (3, 3), padding='same'))
 model.add(layers.Activation('relu'))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 model.add(layers.Dropout(0.25))
@@ -46,14 +46,16 @@ model.add(layers.Dense(100))
 model.add(layers.Activation('softmax'))
 model.summary()
 
-opt = keras.optimizers.RMSprop(learning_rate=0.0001, decay=1e-6)
+# opt = keras.optimizers.RMSprop(learning_rate=0.0001, decay=1e-6)
+opt = keras.optimizers.SGD(lr=0.0001, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-model_path = os.path.join(dir_path, 'spptest.h5')
+# model_path = os.path.join(dir_path, 'sppRMSprop.h5')
+model_path = os.path.join(dir_path, 'sppSGD.h5')
 model.load_weights(model_path)
 
-model.fit(x_train, y_train, batch_size=64, epochs=5, validation_data=(x_test, y_test), shuffle=True)
+model.fit(x_train, y_train, batch_size=64, epochs=10, validation_data=(x_test, y_test), shuffle=True)
 
 model.save(model_path)
 
